@@ -1,8 +1,10 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInput = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Workspace = game:GetService("Workspace")
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "UltraMenu"
@@ -145,25 +147,22 @@ local fly, noclip = false, false
 makeToggle("Fly", UDim2.new(0.2,0,0.1,0), function(state) fly = state end)
 makeToggle("Noclip", UDim2.new(0.2,0,0.25,0), function(state) noclip = state end)
 
-local wsBox = Instance.new("TextBox", mainTab)
-wsBox.Size = UDim2.new(0.6,0,0.12,0)
-wsBox.Position = UDim2.new(0.2,0,0.4,0)
-wsBox.Text = "WalkSpeed: 16"
-wsBox.TextScaled = true
-wsBox.Font = Enum.Font.GothamBold
-wsBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
-wsBox.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", wsBox).CornerRadius = UDim.new(0,10)
+-- Spawn Object Feature (Visible für alle)
+local function spawnObject()
+    local part = Instance.new("Part", Workspace)
+    part.Size = Vector3.new(4,1,4)
+    part.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
+    part.Anchored = true
+    part.BrickColor = BrickColor.Random()
+    part.Name = "FunObject"
+    part.Anchored = false
+    local tween = TweenService:Create(part,TweenInfo.new(1,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Position=part.Position+Vector3.new(0,10,0)})
+    tween:Play()
+end
 
-local jpBox = Instance.new("TextBox", mainTab)
-jpBox.Size = UDim2.new(0.6,0,0.12,0)
-jpBox.Position = UDim2.new(0.2,0,0.55,0)
-jpBox.Text = "JumpPower: 50"
-jpBox.TextScaled = true
-jpBox.Font = Enum.Font.GothamBold
-jpBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
-jpBox.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", jpBox).CornerRadius = UDim.new(0,10)
+makeToggle("Spawn Object", UDim2.new(0.2,0,0.4,0), function(state)
+    if state then spawnObject() end
+end)
 
 -- ESP Tab
 local espTab = tabFrames["ESP"]
@@ -173,7 +172,6 @@ local espEnabled = false
 makeToggle("ESP", UDim2.new(0.2,0,0.1,0), function(state) espEnabled = state end)
 
 RunService.Heartbeat:Connect(function()
-    -- Fly & Noclip
     if fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = LocalPlayer.Character.HumanoidRootPart
         hrp.CFrame = hrp.CFrame + hrp.CFrame.LookVector*0.5
@@ -182,13 +180,6 @@ RunService.Heartbeat:Connect(function()
         for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
             if v:IsA("BasePart") then v.CanCollide = false end
         end
-    end
-    -- WalkSpeed & JumpPower
-    if tonumber(wsBox.Text:match("%d+")) then
-        LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(wsBox.Text:match("%d+"))
-    end
-    if tonumber(jpBox.Text:match("%d+")) then
-        LocalPlayer.Character.Humanoid.JumpPower = tonumber(jpBox.Text:match("%d+"))
     end
     -- ESP
     espFolder:ClearAllChildren()
