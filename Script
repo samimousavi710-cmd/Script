@@ -1,7 +1,8 @@
--- Services
+-- Roblox Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInput = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Workspace = game:GetService("Workspace")
@@ -182,4 +183,21 @@ makeToggle(tabFrames["ESP"],"ESP",UDim2.new(0.2,0,0.1,0),function(state) espEnab
 -- RunService Loop
 RunService.Heartbeat:Connect(function()
     if fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame =
+        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame + LocalPlayer.Character.HumanoidRootPart.CFrame.LookVector*0.5
+    end
+    if noclip and LocalPlayer.Character then
+        for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
+    espFolder:ClearAllChildren()
+    if espEnabled then
+        for _,plr in pairs(Players:GetPlayers()) do
+            if plr~=LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local hl = Instance.new("Highlight",espFolder)
+                hl.Adornee = plr.Character
+                hl.FillColor = Color3.fromRGB(0,255,0)
+            end
+        end
+    end
+end)
