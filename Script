@@ -1,52 +1,59 @@
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui")
-gui.Name = "RainbowGui"
+gui.Name = "MainGui"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0.4, 0, 0.4, 0)
-frame.Position = UDim2.new(0.3, 0, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-frame.BorderSizePixel = 0
-frame.BackgroundTransparency = 0.05
-frame.Parent = gui
+local rainbowFrame = Instance.new("Frame")
+rainbowFrame.Size = UDim2.new(0.3, 0, 0.2, 0)
+rainbowFrame.Position = UDim2.new(0.35, 0, 0.4, 0)
+rainbowFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+rainbowFrame.BorderSizePixel = 0
+rainbowFrame.Active = true
+rainbowFrame.Draggable = true
+rainbowFrame.Parent = gui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 20)
-corner.Parent = frame
+local rainbowCorner = Instance.new("UICorner")
+rainbowCorner.CornerRadius = UDim.new(0, 20)
+rainbowCorner.Parent = rainbowFrame
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0.2, 0)
-title.BackgroundTransparency = 1
-title.Text = "🌈 Rainbow GUI 🌈"
-title.Font = Enum.Font.GothamBold
-title.TextScaled = true
-title.TextColor3 = Color3.new(1,1,1)
-title.Parent = frame
-
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0.8, 0, 0.2, 0)
-button.Position = UDim2.new(0.1, 0, 0.7, 0)
-button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-button.Text = "Click Me!"
-button.TextScaled = true
-button.Font = Enum.Font.Gotham
-button.TextColor3 = Color3.new(1,1,1)
-button.Parent = frame
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0.8, 0, 0.5, 0)
+openButton.Position = UDim2.new(0.1, 0, 0.25, 0)
+openButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+openButton.Text = "Open Menu"
+openButton.TextScaled = true
+openButton.Font = Enum.Font.GothamBold
+openButton.TextColor3 = Color3.new(1,1,1)
+openButton.Parent = rainbowFrame
 
 local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 12)
-btnCorner.Parent = button
+btnCorner.Parent = openButton
 
-button.MouseButton1Click:Connect(function()
-	print("Button clicked!")
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.Position = UDim2.new(0.25, 0, 0.25, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Visible = false
+mainFrame.Parent = gui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 20)
+mainCorner.Parent = mainFrame
+
+openButton.MouseButton1Click:Connect(function()
+    rainbowFrame.Visible = false
+    mainFrame.Visible = true
 end)
 
 task.spawn(function()
 	while true do
 		for hue = 0, 1, 0.01 do
-			frame.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+			rainbowFrame.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
 			task.wait(0.05)
 		end
 	end
