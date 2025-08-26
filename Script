@@ -1,11 +1,11 @@
--- Roblox Services
+-- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInput = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local Workspace = game:GetService("Workspace")
 
 -- ScreenGui
 local gui = Instance.new("ScreenGui")
@@ -174,11 +174,29 @@ local fly, noclip = false,false
 makeToggle(tabFrames["Main"],"Fly",UDim2.new(0.2,0,0.1,0),function(state) fly = state end)
 makeToggle(tabFrames["Main"],"Noclip",UDim2.new(0.2,0,0.25,0),function(state) noclip = state end)
 
+-- Spawn Objects Feature
+local function spawnObject()
+    local part = Instance.new("Part", Workspace)
+    part.Size = Vector3.new(4,1,4)
+    part.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
+    part.Anchored = true
+    part.BrickColor = BrickColor.Random()
+    part.Name = "FunObject"
+    local tween = TweenService:Create(part,TweenInfo.new(1,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Position=part.Position+Vector3.new(0,10,0)})
+    tween:Play()
+end
+makeToggle(tabFrames["Other"],"Spawn Object",UDim2.new(0.2,0,0.1,0),function(state) if state then spawnObject() end end)
+
 -- ESP Tab
 local espEnabled = false
 local espFolder = Instance.new("Folder", gui)
 espFolder.Name = "ESP_Highlights"
 makeToggle(tabFrames["ESP"],"ESP",UDim2.new(0.2,0,0.1,0),function(state) espEnabled = state end)
+
+-- Settings Tab example: GUI color
+local function setGUIColor(color)
+    mainFrame.BackgroundColor3 = color
+end
 
 -- RunService Loop
 RunService.Heartbeat:Connect(function()
