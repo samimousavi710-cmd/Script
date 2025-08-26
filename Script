@@ -1,27 +1,32 @@
+-- Roblox Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInput = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local UserInput = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local Workspace = game:GetService("Workspace")
 
+-- GUI Root
 local gui = Instance.new("ScreenGui")
-gui.Name = "UltraMenu"
+gui.Name = "UltimateGUI"
 gui.Parent = PlayerGui
 gui.ResetOnSpawn = false
 
--- Rainbow Key GUI
-local rainbowFrame = Instance.new("Frame", gui)
-rainbowFrame.Size = UDim2.new(0.35,0,0.25,0)
-rainbowFrame.Position = UDim2.new(0.325,0,0.35,0)
-rainbowFrame.BackgroundColor3 = Color3.fromRGB(255,0,0)
-rainbowFrame.BorderSizePixel = 0
-rainbowFrame.Active = true
-rainbowFrame.Draggable = true
-Instance.new("UICorner", rainbowFrame).CornerRadius = UDim.new(0,20)
+-- Key System Database
+local validKeys = {"Joel","Sami"}
+local usedKeys = {}
 
-local keyBox = Instance.new("TextBox", rainbowFrame)
+-- Rainbow Key GUI
+local keyFrame = Instance.new("Frame", gui)
+keyFrame.Size = UDim2.new(0.35,0,0.25,0)
+keyFrame.Position = UDim2.new(0.325,0,0.35,0)
+keyFrame.BackgroundColor3 = Color3.fromRGB(255,0,0)
+keyFrame.Active = true
+keyFrame.Draggable = true
+Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0,20)
+
+local keyBox = Instance.new("TextBox", keyFrame)
 keyBox.Size = UDim2.new(0.7,0,0.3,0)
 keyBox.Position = UDim2.new(0.15,0,0.2,0)
 keyBox.PlaceholderText = "Enter Key"
@@ -31,7 +36,7 @@ keyBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
 keyBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", keyBox).CornerRadius = UDim.new(0,12)
 
-local submitBtn = Instance.new("TextButton", rainbowFrame)
+local submitBtn = Instance.new("TextButton", keyFrame)
 submitBtn.Size = UDim2.new(0.5,0,0.25,0)
 submitBtn.Position = UDim2.new(0.25,0,0.6,0)
 submitBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
@@ -43,28 +48,49 @@ Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0,12)
 
 -- Main GUI
 local mainFrame = Instance.new("Frame", gui)
-mainFrame.Size = UDim2.new(0.65,0,0.65,0)
-mainFrame.Position = UDim2.new(0.175,0,0.175,0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+mainFrame.Size = UDim2.new(0.7,0,0.7,0)
+mainFrame.Position = UDim2.new(0.15,0,0.15,0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 mainFrame.BorderSizePixel = 0
+mainFrame.Visible = false
 mainFrame.Active = true
 mainFrame.Draggable = true
-mainFrame.Visible = false
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,20)
 
-local closeButton = Instance.new("TextButton", mainFrame)
-closeButton.Size = UDim2.new(0.05,0,0.08,0)
-closeButton.Position = UDim2.new(0.95,-10,0,5)
-closeButton.BackgroundColor3 = Color3.fromRGB(200,50,50)
-closeButton.Text = "X"
-closeButton.TextScaled = true
-closeButton.Font = Enum.Font.GothamBold
-closeButton.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0,10)
+-- GUI Controls
+local closeBtn = Instance.new("TextButton", mainFrame)
+closeBtn.Size = UDim2.new(0.05,0,0.08,0)
+closeBtn.Position = UDim2.new(0.95,-10,0,5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+closeBtn.Text = "X"
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0,10)
 
-closeButton.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
+local minimizeBtn = Instance.new("TextButton", mainFrame)
+minimizeBtn.Size = UDim2.new(0.05,0,0.08,0)
+minimizeBtn.Position = UDim2.new(0.88,-10,0,5)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+minimizeBtn.Text = "_"
+minimizeBtn.TextScaled = true
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0,10)
+
+local fullscreenBtn = Instance.new("TextButton", mainFrame)
+fullscreenBtn.Size = UDim2.new(0.05,0,0.08,0)
+fullscreenBtn.Position = UDim2.new(0.81,-10,0,5)
+fullscreenBtn.BackgroundColor3 = Color3.fromRGB(50,150,50)
+fullscreenBtn.Text = "[ ]"
+fullscreenBtn.TextScaled = true
+fullscreenBtn.Font = Enum.Font.GothamBold
+fullscreenBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", fullscreenBtn).CornerRadius = UDim.new(0,10)
+
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+minimizeBtn.MouseButton1Click:Connect(function() mainFrame.Visible = false end)
+fullscreenBtn.MouseButton1Click:Connect(function() mainFrame.Size = UDim2.new(1,0,1,0); mainFrame.Position = UDim2.new(0,0,0,0) end)
 
 -- Tabs
 local buttonFrame = Instance.new("Frame", mainFrame)
@@ -103,30 +129,31 @@ for i,name in ipairs(tabs) do
     end)
 end
 
--- Key-System
+-- Key Verification
 submitBtn.MouseButton1Click:Connect(function()
-    if keyBox.Text == "Joel" or keyBox.Text == "Sami" then
-        rainbowFrame.Visible = false
+    local key = keyBox.Text
+    if table.find(validKeys,key) and not table.find(usedKeys,key) then
+        table.insert(usedKeys,key)
+        keyFrame.Visible = false
         mainFrame.Visible = true
     else
-        keyBox.Text = "Wrong Key!"
+        keyBox.Text = "Invalid Key"
     end
 end)
 
 -- Rainbow Animation
 task.spawn(function()
-	while true do
-		for hue = 0,1,0.01 do
-			rainbowFrame.BackgroundColor3 = Color3.fromHSV(hue,1,1)
-			task.wait(0.05)
-		end
-	end
+    while true do
+        for hue=0,1,0.01 do
+            keyFrame.BackgroundColor3 = Color3.fromHSV(hue,1,1)
+            task.wait(0.05)
+        end
+    end
 end)
 
--- Features Main Tab
-local mainTab = tabFrames["Main"]
-local function makeToggle(text,pos,callback)
-    local btn = Instance.new("TextButton", mainTab)
+-- Functions to create toggles, sliders, buttons
+local function makeToggle(parent,text,pos,callback)
+    local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0.6,0,0.12,0)
     btn.Position = pos
     btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
@@ -143,50 +170,32 @@ local function makeToggle(text,pos,callback)
     end)
 end
 
-local fly, noclip = false, false
-makeToggle("Fly", UDim2.new(0.2,0,0.1,0), function(state) fly = state end)
-makeToggle("Noclip", UDim2.new(0.2,0,0.25,0), function(state) noclip = state end)
-
--- Spawn Object Feature (Visible für alle)
-local function spawnObject()
-    local part = Instance.new("Part", Workspace)
-    part.Size = Vector3.new(4,1,4)
-    part.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
-    part.Anchored = true
-    part.BrickColor = BrickColor.Random()
-    part.Name = "FunObject"
-    part.Anchored = false
-    local tween = TweenService:Create(part,TweenInfo.new(1,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Position=part.Position+Vector3.new(0,10,0)})
-    tween:Play()
-end
-
-makeToggle("Spawn Object", UDim2.new(0.2,0,0.4,0), function(state)
-    if state then spawnObject() end
-end)
+-- Example Main Features
+local fly, noclip = false,false
+makeToggle(tabFrames["Main"],"Fly",UDim2.new(0.2,0,0.1,0),function(state) fly = state end)
+makeToggle(tabFrames["Main"],"Noclip",UDim2.new(0.2,0,0.25,0),function(state) noclip = state end)
 
 -- ESP Tab
-local espTab = tabFrames["ESP"]
+local espEnabled = false
 local espFolder = Instance.new("Folder", gui)
 espFolder.Name = "ESP_Highlights"
-local espEnabled = false
-makeToggle("ESP", UDim2.new(0.2,0,0.1,0), function(state) espEnabled = state end)
+makeToggle(tabFrames["ESP"],"ESP",UDim2.new(0.2,0,0.1,0),function(state) espEnabled = state end)
 
+-- RunService Loop
 RunService.Heartbeat:Connect(function()
     if fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        hrp.CFrame = hrp.CFrame + hrp.CFrame.LookVector*0.5
+        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame + LocalPlayer.Character.HumanoidRootPart.CFrame.LookVector*0.5
     end
     if noclip and LocalPlayer.Character then
         for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
             if v:IsA("BasePart") then v.CanCollide = false end
         end
     end
-    -- ESP
     espFolder:ClearAllChildren()
     if espEnabled then
         for _,plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local hl = Instance.new("Highlight", espFolder)
+            if plr~=LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local hl = Instance.new("Highlight",espFolder)
                 hl.Adornee = plr.Character
                 hl.FillColor = Color3.fromRGB(0,255,0)
             end
