@@ -32,8 +32,8 @@ btnCorner.CornerRadius = UDim.new(0, 12)
 btnCorner.Parent = openButton
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0.5, 0, 0.5, 0)
-mainFrame.Position = UDim2.new(0.25, 0, 0.25, 0)
+mainFrame.Size = UDim2.new(0.6, 0, 0.6, 0)
+mainFrame.Position = UDim2.new(0.2, 0, 0.2, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -44,6 +44,117 @@ mainFrame.Parent = gui
 local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 20)
 mainCorner.Parent = mainFrame
+
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0.05, 0, 0.08, 0)
+closeButton.Position = UDim2.new(0.95, -10, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Text = "X"
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextColor3 = Color3.new(1,1,1)
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 10)
+closeCorner.Parent = closeButton
+
+local buttonFrame = Instance.new("Frame")
+buttonFrame.Size = UDim2.new(0.2, 0, 1, 0)
+buttonFrame.Position = UDim2.new(0, 0, 0, 0)
+buttonFrame.BackgroundTransparency = 1
+buttonFrame.Parent = mainFrame
+
+local tabs = {"Main","Other","ESP","Settings"}
+local tabFrames = {}
+local activeTab = nil
+
+for i, name in ipairs(tabs) do
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Size = UDim2.new(0.9, 0, 0.18, 0)
+    tabBtn.Position = UDim2.new(0.05, 0, 0.05 + (i-1)*0.22, 0)
+    tabBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    tabBtn.Text = name
+    tabBtn.TextScaled = true
+    tabBtn.Font = Enum.Font.GothamBold
+    tabBtn.TextColor3 = Color3.new(1,1,1)
+    tabBtn.Parent = buttonFrame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = tabBtn
+    
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(0.75, 0, 0.9, 0)
+    content.Position = UDim2.new(0.23, 0, 0.05, 0)
+    content.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    content.BorderSizePixel = 0
+    content.Visible = false
+    content.Parent = mainFrame
+    local ccorner = Instance.new("UICorner")
+    ccorner.CornerRadius = UDim.new(0, 12)
+    ccorner.Parent = content
+    tabFrames[name] = content
+    
+    tabBtn.MouseButton1Click:Connect(function()
+        if activeTab then tabFrames[activeTab].Visible = false end
+        content.Visible = true
+        activeTab = name
+    end)
+end
+
+local espEnabled = false
+local espFolder = Instance.new("Folder", gui)
+espFolder.Name = "ESP_Highlights"
+
+local function toggleESP(state)
+    espEnabled = state
+    espFolder:ClearAllChildren()
+    if espEnabled then
+        for _, plr in pairs(game.Players:GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local highlight = Instance.new("Highlight")
+                highlight.Adornee = plr.Character
+                highlight.FillColor = Color3.fromRGB(0, 255, 0)
+                highlight.Parent = espFolder
+            end
+        end
+    end
+end
+
+game.Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(char)
+        if espEnabled then
+            local highlight = Instance.new("Highlight")
+            highlight.Adornee = char
+            highlight.FillColor = Color3.fromRGB(0, 255, 0)
+            highlight.Parent = espFolder
+        end
+    end)
+end)
+
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0.4, 0, 0.15, 0)
+toggleBtn.Position = UDim2.new(0.3, 0, 0.1, 0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+toggleBtn.Text = "ESP OFF"
+toggleBtn.TextScaled = true
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.Parent = tabFrames["ESP"]
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 10)
+toggleCorner.Parent = toggleBtn
+
+toggleBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    toggleESP(espEnabled)
+    toggleBtn.Text = espEnabled and "ESP ON" or "ESP OFF"
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
 
 openButton.MouseButton1Click:Connect(function()
     rainbowFrame.Visible = false
