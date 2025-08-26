@@ -1,195 +1,359 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInput = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Workspace = game:GetService("Workspace")
+local Camera = Workspace.CurrentCamera
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "UltraMenu"
-gui.Parent = PlayerGui
-gui.ResetOnSpawn = false
-
--- Rainbow Key GUI
-local rainbowFrame = Instance.new("Frame", gui)
-rainbowFrame.Size = UDim2.new(0.35,0,0.25,0)
-rainbowFrame.Position = UDim2.new(0.325,0,0.35,0)
-rainbowFrame.BackgroundColor3 = Color3.fromRGB(255,0,0)
-rainbowFrame.BorderSizePixel = 0
-rainbowFrame.Active = true
-rainbowFrame.Draggable = true
-Instance.new("UICorner", rainbowFrame).CornerRadius = UDim.new(0,20)
-
-local keyBox = Instance.new("TextBox", rainbowFrame)
-keyBox.Size = UDim2.new(0.7,0,0.3,0)
-keyBox.Position = UDim2.new(0.15,0,0.2,0)
-keyBox.PlaceholderText = "Enter Key"
-keyBox.TextScaled = true
-keyBox.Font = Enum.Font.GothamBold
-keyBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
-keyBox.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", keyBox).CornerRadius = UDim.new(0,12)
-
-local submitBtn = Instance.new("TextButton", rainbowFrame)
-submitBtn.Size = UDim2.new(0.5,0,0.25,0)
-submitBtn.Position = UDim2.new(0.25,0,0.6,0)
-submitBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-submitBtn.Text = "Submit"
-submitBtn.TextScaled = true
-submitBtn.Font = Enum.Font.GothamBold
-submitBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0,12)
-
--- Main GUI
-local mainFrame = Instance.new("Frame", gui)
-mainFrame.Size = UDim2.new(0.65,0,0.65,0)
-mainFrame.Position = UDim2.new(0.175,0,0.175,0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(35,35,35)
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Visible = false
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,20)
-
-local closeButton = Instance.new("TextButton", mainFrame)
-closeButton.Size = UDim2.new(0.05,0,0.08,0)
-closeButton.Position = UDim2.new(0.95,-10,0,5)
-closeButton.BackgroundColor3 = Color3.fromRGB(200,50,50)
-closeButton.Text = "X"
-closeButton.TextScaled = true
-closeButton.Font = Enum.Font.GothamBold
-closeButton.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0,10)
-
-closeButton.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
-
--- Tabs
-local buttonFrame = Instance.new("Frame", mainFrame)
-buttonFrame.Size = UDim2.new(0.22,0,1,0)
-buttonFrame.Position = UDim2.new(0,0,0,0)
-buttonFrame.BackgroundTransparency = 1
-
-local tabFrames = {}
-local activeTab = nil
-local tabs = {"Main","Other","ESP","Settings"}
-
-for i,name in ipairs(tabs) do
-    local tabBtn = Instance.new("TextButton", buttonFrame)
-    tabBtn.Size = UDim2.new(0.9,0,0.18,0)
-    tabBtn.Position = UDim2.new(0.05,0,0.05 + (i-1)*0.22,0)
-    tabBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    tabBtn.Text = name
-    tabBtn.TextScaled = true
-    tabBtn.Font = Enum.Font.GothamBold
-    tabBtn.TextColor3 = Color3.new(1,1,1)
-    Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0,10)
-    
-    local content = Instance.new("Frame", mainFrame)
-    content.Size = UDim2.new(0.75,0,0.9,0)
-    content.Position = UDim2.new(0.23,0,0.05,0)
-    content.BackgroundColor3 = Color3.fromRGB(25,25,25)
-    content.BorderSizePixel = 0
-    content.Visible = false
-    Instance.new("UICorner", content).CornerRadius = UDim.new(0,12)
-    tabFrames[name] = content
-    
-    tabBtn.MouseButton1Click:Connect(function()
-        if activeTab then tabFrames[activeTab].Visible = false end
-        content.Visible = true
-        activeTab = name
-    end)
+local function new(class, props)
+	local obj = Instance.new(class)
+	if props then
+		for k,v in pairs(props) do
+			obj[k] = v
+		end
+	end
+	return obj
 end
 
--- Key-System
-submitBtn.MouseButton1Click:Connect(function()
-    if keyBox.Text == "Joel" or keyBox.Text == "Sami" then
-        rainbowFrame.Visible = false
-        mainFrame.Visible = true
-    else
-        keyBox.Text = "Wrong Key!"
-    end
-end)
+local gui = new("ScreenGui", {Name = "UltraFramework", Parent = PlayerGui, ResetOnSpawn = false})
 
--- Rainbow Animation
-task.spawn(function()
-	while true do
-		for hue = 0,1,0.01 do
-			rainbowFrame.BackgroundColor3 = Color3.fromHSV(hue,1,1)
-			task.wait(0.05)
+local validKeys = {"Joel","Sami"}
+local usedKeys = {}
+
+local keyFrame = new("Frame", {Size = UDim2.new(0.35,0,0.24,0), Position = UDim2.new(0.325,0,0.37,0), BackgroundColor3 = Color3.fromRGB(255,0,0), Active = true, Parent = gui})
+new("UICorner", {Parent = keyFrame, CornerRadius = UDim.new(0,18)})
+local keyBox = new("TextBox", {Size = UDim2.new(0.7,0,0.32,0), Position = UDim2.new(0.15,0,0.18,0), PlaceholderText = "Enter Key (Joel or Sami)", Text = "", TextScaled = true, Font = Enum.Font.GothamBold, BackgroundColor3 = Color3.fromRGB(45,45,45), TextColor3 = Color3.new(1,1,1), Parent = keyFrame})
+new("UICorner", {Parent = keyBox, CornerRadius = UDim.new(0,10)})
+local submitBtn = new("TextButton", {Size = UDim2.new(0.5,0,0.24,0), Position = UDim2.new(0.25,0,0.62,0), BackgroundColor3 = Color3.fromRGB(70,70,70), Text = "Submit", TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1,1,1), Parent = keyFrame})
+new("UICorner", {Parent = submitBtn, CornerRadius = UDim.new(0,10)})
+
+local mainFrame = new("Frame", {Size = UDim2.new(0.72,0,0.72,0), Position = UDim2.new(0.14,0,0.14,0), BackgroundColor3 = Color3.fromRGB(30,30,30), Visible = false, Active = true, Parent = gui})
+new("UICorner", {Parent = mainFrame, CornerRadius = UDim.new(0,18)})
+local titleBar = new("Frame", {Size = UDim2.new(1,0,0.08,0), Position = UDim2.new(0,0,0,0), BackgroundTransparency = 1, Parent = mainFrame})
+local controls = new("Frame", {Size = UDim2.new(0.3,0,1,0), Position = UDim2.new(0,0,0.08,0), BackgroundTransparency = 1, Parent = mainFrame})
+
+local closeBtn = new("TextButton", {Size = UDim2.new(0.05,0,0.08,0), Position = UDim2.new(0.95,-12,0,6), BackgroundColor3 = Color3.fromRGB(200,50,50), Text = "X", TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1,1,1), Parent = mainFrame})
+new("UICorner", {Parent = closeBtn, CornerRadius = UDim.new(0,10)})
+local minimizeBtn = new("TextButton", {Size = UDim2.new(0.05,0,0.08,0), Position = UDim2.new(0.88,-12,0,6), BackgroundColor3 = Color3.fromRGB(110,110,110), Text = "_", TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1,1,1), Parent = mainFrame})
+new("UICorner", {Parent = minimizeBtn, CornerRadius = UDim.new(0,10)})
+local fullscreenBtn = new("TextButton", {Size = UDim2.new(0.05,0,0.08,0), Position = UDim2.new(0.81,-12,0,6), BackgroundColor3 = Color3.fromRGB(50,150,50), Text = "◻", TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1,1,1), Parent = mainFrame})
+new("UICorner", {Parent = fullscreenBtn, CornerRadius = UDim.new(0,10)})
+
+local leftPanel = new("Frame", {Size = UDim2.new(0.22,0,1,0), Position = UDim2.new(0,0,0,0), BackgroundTransparency = 1, Parent = mainFrame})
+local contentArea = new("Frame", {Size = UDim2.new(0.75,0,0.9,0), Position = UDim2.new(0.24,0,0.06,0), BackgroundColor3 = Color3.fromRGB(22,22,22), Parent = mainFrame})
+new("UICorner", {Parent = contentArea, CornerRadius = UDim.new(0,12)})
+
+local tabs = {"Main","Other","ESP","Settings"}
+local tabFrames = {}
+local activeTab = nil
+for i,name in ipairs(tabs) do
+	local btn = new("TextButton", {Size = UDim2.new(0.9,0,0.18,0), Position = UDim2.new(0.05,0,0.05 + (i-1)*0.22,0), BackgroundColor3 = Color3.fromRGB(60,60,60), Text = name, TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1,1,1), Parent = leftPanel})
+	new("UICorner", {Parent = btn, CornerRadius = UDim.new(0,10)})
+	local frame = new("Frame", {Size = UDim2.new(1,0,1,0), Position = UDim2.new(0,0,0,0), BackgroundTransparency = 1, Visible = false, Parent = contentArea})
+	tabFrames[name] = frame
+	btn.MouseButton1Click:Connect(function()
+		if activeTab then tabFrames[activeTab].Visible = false end
+		frame.Visible = true
+		activeTab = name
+	end)
+end
+
+local function makeLabel(parent, text, pos, size)
+	local l = new("TextLabel", {Parent = parent, Text = text, TextScaled = true, Font = Enum.Font.Gotham, TextColor3 = Color3.new(1,1,1), BackgroundTransparency = 1, Size = size or UDim2.new(0.6,0,0.12,0), Position = pos})
+	return l
+end
+
+local function makeButton(parent, text, pos, size)
+	local b = new("TextButton", {Parent = parent, Text = text, TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1,1,1), BackgroundColor3 = Color3.fromRGB(70,70,70), Size = size or UDim2.new(0.6,0,0.12,0), Position = pos, AutoButtonColor = true})
+	new("UICorner", {Parent = b, CornerRadius = UDim.new(0,10)})
+	return b
+end
+
+local function makeToggle(parent, text, pos)
+	local b = new("TextButton", {Parent = parent, Size = UDim2.new(0.6,0,0.12,0), Position = pos, BackgroundColor3 = Color3.fromRGB(70,70,70), Text = text.." OFF", TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1,1,1)})
+	new("UICorner", {Parent = b, CornerRadius = UDim.new(0,10)})
+	local state = false
+	b.MouseButton1Click:Connect(function()
+		state = not state
+		b.Text = text.." "..(state and "ON" or "OFF")
+		b.BackgroundColor3 = state and Color3.fromRGB(0,170,0) or Color3.fromRGB(70,70,70)
+	end)
+	local function get()
+		return state
+	end
+	return get, b
+end
+
+local function makeSlider(parent, text, pos, min, max, init)
+	local holder = new("Frame", {Parent = parent, Size = UDim2.new(0.9,0,0.12,0), Position = pos, BackgroundTransparency = 1})
+	local lab = makeLabel(holder, text.." "..tostring(init), UDim2.new(0,0,0,0), UDim2.new(0.45,0,1,0))
+	local bar = new("Frame", {Parent = holder, Size = UDim2.new(0.5,0,0.28,0), Position = UDim2.new(0.48,0,0.36,0), BackgroundColor3 = Color3.fromRGB(90,90,90)})
+	new("UICorner", {Parent = bar, CornerRadius = UDim.new(0,8)})
+	local fill = new("Frame", {Parent = bar, Size = UDim2.new((init-min)/(max-min),0,1,0), Position = UDim2.new(0,0,0,0), BackgroundColor3 = Color3.fromRGB(180,180,180)})
+	new("UICorner", {Parent = fill, CornerRadius = UDim.new(0,8)})
+	local val = init
+	local dragging = false
+	bar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
 		end
+	end)
+	bar.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = false
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local rel = math.clamp((UserInputService:GetMouseLocation().X - bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)
+			fill.Size = UDim2.new(rel,0,1,0)
+			val = min + rel*(max-min)
+			lab.Text = text.." "..tostring(math.floor(val))
+		end
+	end)
+	local function get() return val end
+	return get, holder
+end
+
+local mainTab = tabFrames["Main"]
+local otherTab = tabFrames["Other"]
+local espTab = tabFrames["ESP"]
+local settingsTab = tabFrames["Settings"]
+
+local flyEnabled = false
+local noclipEnabled = false
+local flySpeed = 80
+local bv = nil
+
+local flyGetToggle, flyBtn = makeToggle(mainTab, "Fly", UDim2.new(0.2,0,0.08,0))
+local noclipGetToggle, noclipBtn = makeToggle(mainTab, "Noclip", UDim2.new(0.2,0,0.22,0))
+local walkSpeedGetter, wsSlider = makeSlider(mainTab, "WalkSpeed", UDim2.new(0.2,0,0.36,0), 8, 500, 16)
+local jumpPowerGetter, jpSlider = makeSlider(mainTab, "JumpPower", UDim2.new(0.2,0,0.5,0), 30, 300, 50)
+local flySpeedGetter, fsSlider = makeSlider(mainTab, "FlySpeed", UDim2.new(0.2,0,0.64,0), 20, 300, 80)
+
+local spawnBtn = makeButton(otherTab, "Spawn Platform (local)", UDim2.new(0.2,0,0.08,0))
+local explodeBtn = makeButton(otherTab, "Spawn Firework (local)", UDim2.new(0.2,0,0.22,0))
+local animBtn = makeButton(otherTab, "Play Local Animation", UDim2.new(0.2,0,0.36,0))
+
+local espGetToggle, espBtn = makeToggle(espTab, "ESP", UDim2.new(0.2,0,0.08,0))
+local nameGetToggle, nameBtn = makeToggle(espTab, "Show Names", UDim2.new(0.2,0,0.22,0))
+local espRangeGetter, espRangeHolder = makeSlider(espTab, "ESP Range", UDim2.new(0.2,0,0.36,0), 50, 2000, 500)
+local espRGetter, rHold = makeSlider(espTab, "ESP Color R", UDim2.new(0.2,0,0.5,0), 0, 255, 0)
+local espGGetter, gHold = makeSlider(espTab, "ESP Color G", UDim2.new(0.2,0,0.64,0), 0, 255, 255)
+local espBGetter, bHold = makeSlider(espTab, "ESP Color B", UDim2.new(0.2,0,0.78,0), 0, 255, 0)
+
+local guiRGetter, grHold = makeSlider(settingsTab, "GUI R", UDim2.new(0.05,0,0.05,0), 0, 255, 36)
+local guiGGetter, ggHold = makeSlider(settingsTab, "GUI G", UDim2.new(0.05,0,0.19,0), 0, 255, 36)
+local guiBGetter, gbHold = makeSlider(settingsTab, "GUI B", UDim2.new(0.05,0,0.33,0), 0, 255, 36)
+local alphaGetter, alphaHolder = makeSlider(settingsTab, "GUI Transparency", UDim2.new(0.05,0,0.47,0), 0, 1, 0.08)
+
+local espFolder = new("Folder", {Name = "ESPFolder", Parent = gui})
+
+local function clearESP()
+	for _,c in pairs(espFolder:GetChildren()) do c:Destroy() end
+end
+
+local function applyESP()
+	clearESP()
+	if not espGetToggle() then return end
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Head") then
+			local hrp = plr.Character.HumanoidRootPart
+			local dist = (hrp.Position - (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position or Vector3.new(0,0,0))).Magnitude
+			if dist <= espRangeGetter() then
+				local hl = new("Highlight", {Parent = espFolder, Adornee = plr.Character, FillColor = Color3.fromRGB(math.clamp(math.floor(espRGetter()),0,255), math.clamp(math.floor(espGGetter()),0,255), math.clamp(math.floor(espBGetter()),0,255)), OutlineColor = Color3.new(0,0,0)})
+				if nameGetToggle() then
+					local bill = new("BillboardGui", {Parent = plr.Character:FindFirstChild("Head"), Adornee = plr.Character:FindFirstChild("Head"), Size = UDim2.new(0,120,0,30), StudsOffsetWorldSpace = Vector3.new(0,2.2,0), AlwaysOnTop = true})
+					local label = new("TextLabel", {Parent = bill, Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1, Text = plr.Name.." ("..math.floor(dist)..")", TextScaled = true, Font = Enum.Font.GothamBold, TextColor3 = Color3.fromRGB(255,255,255)})
+				end
+			end
+		end
+	end
+end
+
+spawnBtn.MouseButton1Click:Connect(function()
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local p = new("Part", Workspace)
+		p.Size = Vector3.new(8,1,8)
+		p.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0,-3,0)
+		p.Anchored = true
+		p.BrickColor = BrickColor.Random()
+		p.Name = "LocalPlatform_"..LocalPlayer.UserId
+		task.delay(10, function() if p and p.Parent then p:Destroy() end end)
 	end
 end)
 
--- Features Main Tab
-local mainTab = tabFrames["Main"]
-local function makeToggle(text,pos,callback)
-    local btn = Instance.new("TextButton", mainTab)
-    btn.Size = UDim2.new(0.6,0,0.12,0)
-    btn.Position = pos
-    btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-    btn.Text = text.." OFF"
-    btn.TextScaled = true
-    btn.Font = Enum.Font.GothamBold
-    btn.TextColor3 = Color3.new(1,1,1)
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
-    local state = false
-    btn.MouseButton1Click:Connect(function()
-        state = not state
-        btn.Text = text.." "..(state and "ON" or "OFF")
-        callback(state)
-    end)
-end
-
-local fly, noclip = false, false
-makeToggle("Fly", UDim2.new(0.2,0,0.1,0), function(state) fly = state end)
-makeToggle("Noclip", UDim2.new(0.2,0,0.25,0), function(state) noclip = state end)
-
--- Spawn Object Feature (Visible für alle)
-local function spawnObject()
-    local part = Instance.new("Part", Workspace)
-    part.Size = Vector3.new(4,1,4)
-    part.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
-    part.Anchored = true
-    part.BrickColor = BrickColor.Random()
-    part.Name = "FunObject"
-    part.Anchored = false
-    local tween = TweenService:Create(part,TweenInfo.new(1,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Position=part.Position+Vector3.new(0,10,0)})
-    tween:Play()
-end
-
-makeToggle("Spawn Object", UDim2.new(0.2,0,0.4,0), function(state)
-    if state then spawnObject() end
+explodeBtn.MouseButton1Click:Connect(function()
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local part = new("Part", Workspace)
+		part.Size = Vector3.new(1,1,1)
+		part.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
+		part.Anchored = true
+		part.Transparency = 1
+		local e = Instance.new("Explosion", Workspace)
+		e.Position = part.Position
+		task.delay(0.1, function() part:Destroy() end)
+	end
 end)
 
--- ESP Tab
-local espTab = tabFrames["ESP"]
-local espFolder = Instance.new("Folder", gui)
-espFolder.Name = "ESP_Highlights"
-local espEnabled = false
-makeToggle("ESP", UDim2.new(0.2,0,0.1,0), function(state) espEnabled = state end)
+animBtn.MouseButton1Click:Connect(function()
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+		local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		local anim = Instance.new("Animation")
+		anim.AnimationId = "rbxassetid://507771019" 
+		local track = humanoid:LoadAnimation(anim)
+		track:Play()
+		task.delay(3, function() track:Stop() end)
+	end
+end)
 
-RunService.Heartbeat:Connect(function()
-    if fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        hrp.CFrame = hrp.CFrame + hrp.CFrame.LookVector*0.5
-    end
-    if noclip and LocalPlayer.Character then
-        for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-    -- ESP
-    espFolder:ClearAllChildren()
-    if espEnabled then
-        for _,plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local hl = Instance.new("Highlight", espFolder)
-                hl.Adornee = plr.Character
-                hl.FillColor = Color3.fromRGB(0,255,0)
-            end
-        end
-    end
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+minimizeBtn.MouseButton1Click:Connect(function() contentArea.Visible = not contentArea.Visible end)
+fullscreenBtn.MouseButton1Click:Connect(function()
+	if mainFrame.Size == UDim2.new(1,0,1,0) then
+		mainFrame.Size = UDim2.new(0.72,0,0.72,0)
+		mainFrame.Position = UDim2.new(0.14,0,0.14,0)
+	else
+		mainFrame.Size = UDim2.new(1,0,1,0)
+		mainFrame.Position = UDim2.new(0,0,0,0)
+	end
+end)
+
+local draggingFrame = nil
+local dragOffset = Vector2.new()
+local function makeDraggable(frame)
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			draggingFrame = frame
+			dragOffset = Vector2.new(input.Position.X - frame.AbsolutePosition.X, input.Position.Y - frame.AbsolutePosition.Y)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			draggingFrame = nil
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if draggingFrame and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local pos = Vector2.new(input.Position.X - dragOffset.X, input.Position.Y - dragOffset.Y)
+			frame.Position = UDim2.new(0, pos.X, 0, pos.Y)
+		end
+	end)
+end
+
+makeDraggable(mainFrame)
+makeDraggable(keyFrame)
+
+local function setCharacterMovement()
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+		local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		hum.WalkSpeed = math.clamp(math.floor(walkSpeedGetter()), 8, 500)
+		hum.JumpPower = math.clamp(math.floor(jumpPowerGetter()), 30, 300)
+	end
+end
+
+local keys = {W=false,A=false,S=false,D=false,Space=false,Shift=false}
+UserInputService.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Keyboard then
+		local k = input.KeyCode
+		if k == Enum.KeyCode.W then keys.W = true end
+		if k == Enum.KeyCode.S then keys.S = true end
+		if k == Enum.KeyCode.A then keys.A = true end
+		if k == Enum.KeyCode.D then keys.D = true end
+		if k == Enum.KeyCode.Space then keys.Space = true end
+		if k == Enum.KeyCode.LeftShift then keys.Shift = true end
+	end
+end)
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Keyboard then
+		local k = input.KeyCode
+		if k == Enum.KeyCode.W then keys.W = false end
+		if k == Enum.KeyCode.S then keys.S = false end
+		if k == Enum.KeyCode.A then keys.A = false end
+		if k == Enum.KeyCode.D then keys.D = false end
+		if k == Enum.KeyCode.Space then keys.Space = false end
+		if k == Enum.KeyCode.LeftShift then keys.Shift = false end
+	end
+end)
+
+local function enableFly()
+	if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+	if bv then bv:Destroy() end
+	bv = Instance.new("BodyVelocity", LocalPlayer.Character.HumanoidRootPart)
+	bv.MaxForce = Vector3.new(1e5,1e5,1e5)
+	bv.Velocity = Vector3.new(0,0,0)
+end
+
+local function disableFly()
+	if bv then bv:Destroy(); bv = nil end
+end
+
+RunService.Heartbeat:Connect(function(dt)
+	local flyState = flyGetToggle()
+	local noclipState = noclipGetToggle()
+	local ws = math.clamp(math.floor(walkSpeedGetter()), 8, 500)
+	local jp = math.clamp(math.floor(jumpPowerGetter()), 30, 300)
+	flySpeed = math.clamp(math.floor(flySpeedGetter()), 20, 300)
+
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+		LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = ws
+		LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = jp
+	end
+
+	if flyState then
+		if not bv then enableFly() end
+		if bv and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			local hrp = LocalPlayer.Character.HumanoidRootPart
+			local look = Camera.CFrame.LookVector
+			local right = Camera.CFrame.RightVector
+			local move = Vector3.new()
+			if keys.W then move = move + look end
+			if keys.S then move = move - look end
+			if keys.A then move = move - right end
+			if keys.D then move = move + right end
+			if keys.Space then move = move + Vector3.new(0,1,0) end
+			if keys.Shift then move = move - Vector3.new(0,1,0) end
+			if move.Magnitude > 0 then move = move.Unit end
+			local target = move * flySpeed
+			bv.Velocity = target
+		end
+	else
+		if bv then disableFly() end
+	end
+
+	if noclipState then
+		if LocalPlayer.Character then
+			for _,p in pairs(LocalPlayer.Character:GetDescendants()) do
+				if p:IsA("BasePart") and p.Name ~= "HumanoidRootPart" then
+					p.CanCollide = false
+				end
+			end
+		end
+	end
+
+	applyESP()
+
+	local r = math.clamp(math.floor(guiRGetter()),0,255)
+	local g = math.clamp(math.floor(guiGGetter()),0,255)
+	local b = math.clamp(math.floor(guiBGetter()),0,255)
+	local a = math.clamp(alphaGetter(),0,1)
+	contentArea.BackgroundColor3 = Color3.fromRGB(r,g,b)
+	contentArea.BackgroundTransparency = a
+
+	setCharacterMovement()
+end)
+
+submitBtn.MouseButton1Click:Connect(function()
+	local key = keyBox.Text
+	if key and key ~= "" and table.find(validKeys, key) and not table.find(usedKeys, key) then
+		table.insert(usedKeys, key)
+		keyFrame.Visible = false
+		mainFrame.Visible = true
+		tabFrames["Main"].Visible = true
+		activeTab = "Main"
+	else
+		keyBox.Text = "Invalid Key"
+	end
 end)
